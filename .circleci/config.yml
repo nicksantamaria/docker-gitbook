@@ -26,7 +26,7 @@ jobs:
             docker push "${IMAGE}:latest"
             docker push "${IMAGE}:${PLATFORM}"
 
-            GITBOOK_VERSION=$(docker run --rm "${IMAGE}:latest" --version | awk '{print $3}')
+            GITBOOK_VERSION=$(docker run --rm "${IMAGE}:latest" --version | grep 'GitBook' | awk '{print $3}')
             docker tag "${IMAGE}:latest" "${IMAGE}:${GITBOOK_VERSION}"
             docker tag "${IMAGE}:latest" "${IMAGE}:${GITBOOK_VERSION}-${PLATFORM}"
             docker push "${IMAGE}:${GITBOOK_VERSION}"
@@ -54,7 +54,7 @@ jobs:
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker push "${IMAGE}:${PLATFORM}"
 
-            GITBOOK_VERSION=$(docker run --rm "${IMAGE}:${PLATFORM}" --version | awk '{print $3}')
+            GITBOOK_VERSION=$(docker run --rm "${IMAGE}:${PLATFORM}" --version | grep 'GitBook' | awk '{print $3}')
             docker tag "${IMAGE}:${PLATFORM}" "${IMAGE}:${GITBOOK_VERSION}-${PLATFORM}"
             docker push "${IMAGE}:${GITBOOK_VERSION}-${PLATFORM}"
 
