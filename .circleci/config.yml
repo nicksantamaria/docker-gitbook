@@ -57,17 +57,29 @@ jobs:
             GITBOOK_VERSION=$(docker run --rm "${IMAGE}:${PLATFORM}" --version | awk '{print $3}')
             docker tag "${IMAGE}:${PLATFORM}" "${IMAGE}:${GITBOOK_VERSION}-${PLATFORM}"
             docker push "${IMAGE}:${GITBOOK_VERSION}-${PLATFORM}"
+
+# YAML anchor used to centralise filtering of workflows.
+filters_master: &filters_master
+  branches:
+    only: master
+
 workflows:
   version: 2
-  weekly:
+  master:
     jobs:
       - alpine
       - debian
+  weekly:
+    jobs:
+      - alpine:
+          filters:
+            <<: *filters_master
+      - debian:
+          filters:
+            <<: *filters_master
     triggers:
       - schedule:
-          # Scheduled build for 10pm UTC on Sunday.
-          cron: "0 22 * * 0"
+          # Scheduled build for 11pm UTC on Sunday.
+          cron: "0 23 * * 0"
           filters:
-            branches:
-              only:
-                - master
+            <<: *filters_master
