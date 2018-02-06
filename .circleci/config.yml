@@ -36,7 +36,7 @@ jobs:
       - image: docker:edge-git
     environment:
       - IMAGE: "nicksantamaria/gitbook"
-      - PLATFORM: jessie
+      - PLATFORM: stretch
     working_directory: /data
     steps:
       - checkout
