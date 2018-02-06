@@ -1,20 +1,16 @@
-FROM node:8.4.0-alpine
+ARG BASE_IMAGE=alpine
+FROM node:$BASE_IMAGE
 
-MAINTAINER Yan QiDong <yanqd0@outlook.com>
-
-ARG VERSION=3.2.3
-
-LABEL version=$VERSION
-
+# Install gitbook.
 RUN npm install --global gitbook-cli \
         && gitbook fetch ${VERSION} \
         && npm cache verify \
         && rm -rf /tmp/*
 
-WORKDIR /srv/gitbook
+WORKDIR /data
 
-VOLUME /srv/gitbook
+# Set mkdocs as the entrypoint for convenience.
+ENTRYPOINT ["gitbook"]
 
+# Expose default ports for gitbook serve and livereload.
 EXPOSE 4000 35729
-
-CMD gitbook install && gitbook serve

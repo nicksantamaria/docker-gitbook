@@ -1,0 +1,73 @@
+---
+version: 2
+jobs:
+  alpine:
+    docker:
+      - image: docker:edge-git
+    environment:
+      - IMAGE: "nicksantamaria/gitbook"
+      - PLATFORM: alpine
+    working_directory: /data
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build alpine image
+          command: |
+            docker build \
+              --build-arg BASE_IMAGE=${PLATFORM} \
+              -t "${IMAGE}:${PLATFORM}" \
+              -t "${IMAGE}:latest" \
+              .
+      - run:
+          name: Push alpine image
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker push "${IMAGE}:latest"
+            docker push "${IMAGE}:${PLATFORM}"
+
+            GITBOOK_VERSION=$(docker run --rm "${IMAGE}:latest" --version | awk '{print $3}')
+            docker tag "${IMAGE}:latest" "${IMAGE}:${GITBOOK_VERSION}"
+            docker tag "${IMAGE}:latest" "${IMAGE}:${GITBOOK_VERSION}-${PLATFORM}"
+            docker push "${IMAGE}:${GITBOOK_VERSION}"
+            docker push "${IMAGE}:${GITBOOK_VERSION}-${PLATFORM}"
+  debian:
+    docker:
+      - image: docker:edge-git
+    environment:
+      - IMAGE: "nicksantamaria/gitbook"
+      - PLATFORM: jessie
+    working_directory: /data
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build debian image
+          command: |
+            docker build \
+              --build-arg BASE_IMAGE=${PLATFORM} \
+              -t "${IMAGE}:${PLATFORM}" \
+              .
+      - run:
+          name: Push debian image
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker push "${IMAGE}:${PLATFORM}"
+
+            GITBOOK_VERSION=$(docker run --rm "${IMAGE}:${PLATFORM}" --version | awk '{print $3}')
+            docker tag "${IMAGE}:${PLATFORM}" "${IMAGE}:${GITBOOK_VERSION}-${PLATFORM}"
+            docker push "${IMAGE}:${GITBOOK_VERSION}-${PLATFORM}"
+workflows:
+  version: 2
+  weekly:
+    jobs:
+      - alpine
+      - debian
+    triggers:
+      - schedule:
+          # Scheduled build for 10pm UTC on Sunday.
+          cron: "0 22 * * 0"
+          filters:
+            branches:
+              only:
+                - master
